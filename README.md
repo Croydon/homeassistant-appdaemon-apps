@@ -36,3 +36,5 @@ The URL structure to access the generated Phonebook XML is like that:
 ## License
 
 GNU GPL 3
+
+Forked from: https://github.com/Quantum-Cucumber/NextcloudGrandstream
