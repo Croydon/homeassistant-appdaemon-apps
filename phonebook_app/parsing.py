@@ -1,12 +1,12 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from config import *
-from models import *
-from xml_generation import build_xml
+from phonebook_app.models import *
+from phonebook_app.config import instance
+from phonebook_app.xml_generation import build_xml
 import re
 
 
-def fetch_vcard():
+def fetch_vcard(username, password, address_book):
     url = f"{instance.rstrip('/')}/remote.php/dav/addressbooks/users/{username}/{address_book}?export"
     request = requests.get(url, auth=HTTPBasicAuth(username, password))
     return request.content.decode()
@@ -26,11 +26,13 @@ def parse_cards(cards: list[str]):
         name = re.search(r"(?<=FN:)(.*?)(?=\n)", card)
         name = name.group(0) if name else None
 
-        phone_match = re.findall(r"(?<=TEL;TYPE=)\"?([a-z,]+)\"?:(.*?)(?=\n)", card, re.IGNORECASE)
+        # original: phone_match = re.findall(r"(?<=TEL;TYPE=)\"?([a-z,]+)\"?:(.*?)(?=\n)", card, re.IGNORECASE)
+        phone_match = re.findall(r"TEL;TYPE=([^\n:]+):([^\n]+)", card, re.IGNORECASE)
         phones = []
         for phone in phone_match:
             if phone[1]:
-                phones.append(Phone(phone[0].split(","), phone[1]))
+                types = [t for t in re.split(r"[;,]", phone[0]) if not t.upper().startswith("PREF=")]
+                phones.append(Phone(types, phone[1]))
 
         print(name, phones)
         if phones:
@@ -38,13 +40,8 @@ def parse_cards(cards: list[str]):
     return contacts
 
 
-def vcard_to_xml():
-    doc = fetch_vcard()
+def vcard_to_xml(username, password, address_book):
+    doc = fetch_vcard(username, password, address_book)
     cards = isolate_cards(doc)
     contacts = parse_cards(cards)
     return build_xml(contacts)
-
-
-if __name__ == "__main__":
-    xml = vcard_to_xml()
-    xml.write("output.xml")

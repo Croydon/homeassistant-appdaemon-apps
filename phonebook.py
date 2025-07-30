@@ -1,0 +1,13 @@
+import appdaemon.plugins.hass.hassapi as hass
+from phonebook_app.main import contacts
+
+class Phonebook(hass.Hass):
+    def initialize(self):
+        self.register_route(self.contacts_endpoint, "phonebook.xml")
+
+    async def contacts_endpoint(self, request, *args, **kwargs):
+        username = request.query.get("username")
+        password = request.query.get("password")
+        address_book = request.query.get("addressbook")
+
+        return contacts(username, password, address_book)

@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from models import Contact, Phone
+from phonebook_app.models import Contact, Phone
 
 
 def create_base():
