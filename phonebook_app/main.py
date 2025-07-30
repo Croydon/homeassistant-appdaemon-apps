@@ -3,8 +3,8 @@ from phonebook_app.parsing import vcard_to_xml
 from aiohttp import web
 import xml.etree.ElementTree as ET
 
-def contacts(username, password, addressbook):
-    tree = vcard_to_xml(username, password, addressbook)
+def contacts(instance, username, password, addressbook):
+    tree = vcard_to_xml(instance, username, password, addressbook)
     xml_byte_string = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
 
     return web.Response(
