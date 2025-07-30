@@ -2,13 +2,14 @@ import requests
 from requests.auth import HTTPBasicAuth
 from phonebook_app.models import *
 from phonebook_app.xml_generation import build_xml
+from aiohttp import web
 import re
 
 
 def fetch_vcard(instance, username, password, address_book):
     url = f"https://{instance.rstrip('/')}/remote.php/dav/addressbooks/users/{username}/{address_book}?export"
     request = requests.get(url, auth=HTTPBasicAuth(username, password))
-    return request.content.decode()
+    return request.content.decode(), request.status_code
 
 
 def isolate_cards(vcard: str):
@@ -39,8 +40,27 @@ def parse_cards(cards: list[str]):
     return contacts
 
 
-def vcard_to_xml(instance, username, password, address_book):
-    doc = fetch_vcard(instance, username, password, address_book)
+def vcard_to_xml(instance, username, password, address_book) -> web.Response:
+    doc, status_code = fetch_vcard(instance, username, password, address_book)
+
+    if status_code != 200:
+        error_message = "The address book could not be called. Please check if the parameters are correct."
+        print(error_message)
+        return web.Response(
+            text=error_message,
+            content_type="text/plain",
+            status=status_code
+        )
+
     cards = isolate_cards(doc)
     contacts = parse_cards(cards)
-    return build_xml(contacts)
+
+    tree = build_xml(contacts)
+
+    xml_byte_string = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
+
+    return web.Response(
+        text=xml_byte_string.decode("utf-8"),
+        content_type="application/xml",
+        status=200
+    )
