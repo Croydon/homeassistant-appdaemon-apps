@@ -1,8 +1,10 @@
-import requests
-from requests.auth import HTTPBasicAuth
 from phonebook_app.models import *
 from phonebook_app.xml_generation import build_xml
+
 from aiohttp import web
+from requests.auth import HTTPBasicAuth
+import xml.etree.ElementTree as ET
+import requests
 import re
 
 
