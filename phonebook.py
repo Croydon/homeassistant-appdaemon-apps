@@ -3,6 +3,7 @@ from phonebook_app.main import contacts
 
 class Phonebook(hass.Hass):
     def initialize(self):
+        self.log("Initializing Phonebook XML app")
         self.register_route(self.contacts_endpoint, "phonebook.xml")
 
     async def contacts_endpoint(self, request, *args, **kwargs):
